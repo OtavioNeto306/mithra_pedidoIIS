@@ -2,8 +2,13 @@ import express from 'express';
 import mysql from 'mysql2';
 import bcrypt from 'bcrypt';
 import dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
 
-dotenv.config();
+// Configurar o dotenv para carregar o arquivo .env
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+dotenv.config({ path: join(__dirname, '.env') });
 
 const router = express.Router();
 

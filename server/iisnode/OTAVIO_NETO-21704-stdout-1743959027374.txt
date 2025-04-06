@@ -1,0 +1,35 @@
+Servidor rodando na porta \\.\pipe\3b756010-c2e2-4d30-874e-6f17060ad451
+Configurações do banco: { host: 'localhost', user: 'root', database: 'emporio' }
+Tentativa de login para usuário: admin
+Resultado da busca: Usuário encontrado
+Senha válida: true
+Dados do usuário a serem enviados: {
+  USUARIO: 'admin',
+  GRAU: 'S',
+  LOJAS: '',
+  MODULO: '',
+  NOME: 'admin',
+  BANCOS: '',
+  LIMICP: '',
+  CCUSTO: '',
+  ARMAZEN: '',
+  ARMDES: '',
+  GRUPOS: '',
+  COMPRADOR: '',
+  EMAIL: '',
+  NVL_CAIXA: '',
+  GESTOR: '',
+  COMISSAO: '0.00'
+}
+Dados finais a serem enviados: {
+  USUARIO: 'admin',
+  NOME: 'admin',
+  GRAU: 'S',
+  LOJAS: 'N',
+  MODULO: 'N',
+  BANCOS: 'N',
+  LIMICP: 'N',
+  CCUSTO: 'N',
+  ARMAZEN: 'N',
+  COMISSAO: '0.00'
+}
