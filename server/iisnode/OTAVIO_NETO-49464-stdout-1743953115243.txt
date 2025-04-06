@@ -1,0 +1,1 @@
+Servidor rodando na porta \\.\pipe\8138a9ad-1d80-4214-898e-e868e94a841b
