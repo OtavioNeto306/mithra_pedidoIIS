@@ -2,6 +2,8 @@ import express from 'express';
 import mysql from 'mysql2';
 import bcrypt from 'bcrypt';
 import dotenv from 'dotenv';
+import sqlite3 from 'sqlite3';
+import { open } from 'sqlite';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
@@ -12,12 +14,22 @@ dotenv.config({ path: join(__dirname, '.env') });
 
 const router = express.Router();
 
+// Conexão com MySQL (apenas para pedidos)
 const pool = mysql.createPool({
   host: process.env.MYSQL_HOST,
   user: process.env.MYSQL_USER,
   password: process.env.MYSQL_PASSWORD,
   database: process.env.MYSQL_DATABASE
 }).promise();
+
+// Conexão com SQLite (para autenticação)
+let db;
+(async () => {
+  db = await open({
+    filename: join(__dirname, '..', 'usuarios.db3'),
+    driver: sqlite3.Database
+  });
+})();
 
 // Rota de registro
 router.post('/register', async (req, res) => {
@@ -38,9 +50,9 @@ router.post('/register', async (req, res) => {
     }
 
     // Verificar se o usuário já existe
-    const [existingUser] = await pool.query('SELECT USUARIO FROM senhas WHERE USUARIO = ?', [usuario]);
+    const existingUser = await db.get('SELECT USUARIO FROM USERCC WHERE USUARIO = ?', [usuario]);
 
-    if (existingUser.length > 0) {
+    if (existingUser) {
       return res.status(400).json({ error: 'Usuário já cadastrado' });
     }
 
@@ -48,23 +60,19 @@ router.post('/register', async (req, res) => {
     const hashedPassword = await bcrypt.hash(senha, 10);
 
     // Inserir novo usuário
-    await pool.query(
-      'INSERT INTO senhas (USUARIO, SENHA, NOME, GRAU) VALUES (?, ?, ?, ?)',
-      [usuario, hashedPassword, usuario, 'U']
+    await db.run(
+      'INSERT INTO USERCC (USUARIO, PASSWORD, NOME, USERNAME, UACESSO, BLOQUEADO) VALUES (?, ?, ?, ?, ?, ?)',
+      [usuario, hashedPassword, usuario, usuario, 'U', 0]
     );
 
     // Buscar os dados do usuário recém-criado
-    const [newUser] = await pool.query('SELECT * FROM senhas WHERE USUARIO = ?', [usuario]);
-    const { SENHA, ...userData } = newUser[0];
+    const newUser = await db.get('SELECT * FROM USERCC WHERE USUARIO = ?', [usuario]);
+    const { PASSWORD, ...userData } = newUser;
 
     res.status(201).json(userData);
   } catch (error) {
     console.error('Erro ao registrar usuário:', error.message);
-    if (error.code === 'ER_DATA_TOO_LONG') {
-      res.status(400).json({ error: 'Dados fornecidos excedem o tamanho máximo permitido' });
-    } else {
-      res.status(500).json({ error: 'Erro ao registrar usuário. Por favor, tente novamente.' });
-    }
+    res.status(500).json({ error: 'Erro ao registrar usuário. Por favor, tente novamente.' });
   }
 });
 
@@ -81,17 +89,20 @@ router.post('/login', async (req, res) => {
     }
 
     // Buscar usuário
-    const [users] = await pool.query('SELECT * FROM senhas WHERE USUARIO = ?', [usuario]);
-    console.log('Resultado da busca:', users.length > 0 ? 'Usuário encontrado' : 'Usuário não encontrado');
+    const user = await db.get('SELECT * FROM USERCC WHERE USUARIO = ?', [usuario]);
+    console.log('Resultado da busca:', user ? 'Usuário encontrado' : 'Usuário não encontrado');
 
-    if (users.length === 0) {
+    if (!user) {
       return res.status(401).json({ error: 'Usuário ou senha inválidos' });
     }
 
-    const user = users[0];
+    // Verificar se o usuário está bloqueado
+    if (user.BLOQUEADO === 1) {
+      return res.status(401).json({ error: 'Usuário bloqueado. Entre em contato com o administrador.' });
+    }
 
     // Verificar senha
-    const validPassword = await bcrypt.compare(senha, user.SENHA);
+    const validPassword = await bcrypt.compare(senha, user.PASSWORD);
     console.log('Senha válida:', validPassword);
 
     if (!validPassword) {
@@ -99,21 +110,21 @@ router.post('/login', async (req, res) => {
     }
 
     // Retornar dados do usuário (exceto a senha)
-    const { SENHA, ...userData } = user;
+    const { PASSWORD, ...userData } = user;
     console.log('Dados do usuário a serem enviados:', userData);
 
     // Garantir que todos os campos necessários existem
     const responseData = {
       USUARIO: userData.USUARIO,
       NOME: userData.NOME || userData.USUARIO,
-      GRAU: userData.GRAU || 'U',
-      LOJAS: userData.LOJAS || 'N',
-      MODULO: userData.MODULO || 'N',
-      BANCOS: userData.BANCOS || 'N',
-      LIMICP: userData.LIMICP || 'N',
-      CCUSTO: userData.CCUSTO || 'N',
-      ARMAZEN: userData.ARMAZEN || 'N',
-      COMISSAO: userData.COMISSAO || 0
+      GRAU: userData.UACESSO || 'U',
+      LOJAS: 'N',
+      MODULO: 'N',
+      BANCOS: 'N',
+      LIMICP: 'N',
+      CCUSTO: 'N',
+      ARMAZEN: 'N',
+      COMISSAO: 0
     };
 
     console.log('Dados finais a serem enviados:', responseData);
@@ -124,7 +135,7 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// Rota para buscar pedidos
+// Rota para buscar pedidos (mantida com MySQL)
 router.get('/pedidos', async (req, res) => {
   try {
     const [pedidos] = await pool.query(`
@@ -149,12 +160,12 @@ router.get('/pedidos', async (req, res) => {
 // Rota para buscar usuários
 router.get('/users', async (req, res) => {
   try {
-    const [users] = await pool.query(`
+    const users = await db.all(`
       SELECT 
         USUARIO,
         NOME,
-        COMISSAO
-      FROM senhas
+        UACESSO as GRAU
+      FROM USERCC
       ORDER BY NOME
     `);
     res.json(users);
@@ -170,31 +181,21 @@ router.put('/users/:usuario/permissions', async (req, res) => {
   const { permissoes } = req.body;
 
   try {
-    // Atualiza o grau do usuário baseado na permissão de sistema completo
-    const grau = permissoes.sistema_completo ? 'S' : 'V';
+    // Verifica se o usuário existe
+    const userExists = await db.get('SELECT USUARIO FROM USERCC WHERE USUARIO = ?', [usuario]);
+    if (!userExists) {
+      return res.status(404).json({ error: 'Usuário não encontrado' });
+    }
+
+    // Atualiza o acesso do usuário baseado na permissão de sistema completo
+    const uacesso = permissoes.sistema_completo ? 'S' : 'V'; // S = Administrador, V = Vendedor
 
     // Atualiza as permissões do usuário
-    await pool.query(`
-      UPDATE senhas 
-      SET 
-        GRAU = ?,
-        LOJAS = ?,
-        MODULO = ?,
-        BANCOS = ?,
-        LIMICP = ?,
-        CCUSTO = ?,
-        ARMAZEN = ?
+    await db.run(`
+      UPDATE USERCC 
+      SET UACESSO = ?
       WHERE USUARIO = ?
-    `, [
-      grau,
-      permissoes.lojas ? 'S' : 'N',
-      permissoes.modulo ? 'S' : 'N',
-      permissoes.bancos ? 'S' : 'N',
-      permissoes.limicp ? 'S' : 'N',
-      permissoes.ccusto ? 'S' : 'N',
-      permissoes.armazen ? 'S' : 'N',
-      usuario
-    ]);
+    `, [uacesso, usuario]);
 
     res.json({ message: 'Permissões atualizadas com sucesso' });
   } catch (error) {
@@ -219,12 +220,12 @@ router.put('/users/:usuario/comissao', async (req, res) => {
     }
 
     // Verifica se o usuário existe
-    const [userExists] = await pool.query('SELECT USUARIO FROM senhas WHERE USUARIO = ?', [usuario]);
-    if (userExists.length === 0) {
+    const userExists = await db.get('SELECT USUARIO FROM USERCC WHERE USUARIO = ?', [usuario]);
+    if (!userExists) {
       return res.status(404).json({ error: 'Usuário não encontrado' });
     }
 
-    // Atualiza a comissão do usuário
+    // Atualiza a comissão do usuário (mantida no MySQL para compatibilidade)
     await pool.query(`
       UPDATE senhas 
       SET COMISSAO = ?

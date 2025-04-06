@@ -1,0 +1,56 @@
+Servidor rodando na porta \\.\pipe\bd5726ab-8c41-4fb5-bfa5-98848888f9a0
+Configurações do banco: { host: 'localhost', user: 'root', database: 'emporio' }
+Tentativa de login para usuário: innova
+Resultado da busca: Usuário não encontrado
+Tentativa de login para usuário: 40000026
+Resultado da busca: Usuário encontrado
+Senha válida: true
+Dados do usuário a serem enviados: {
+  USUARIO: '40000026',
+  NOME: 'INNOVA REPRESENTACAO',
+  USERNAME: 'innova',
+  UACESSO: null,
+  BLOQUEADO: null
+}
+Dados finais a serem enviados: {
+  USUARIO: '40000026',
+  NOME: 'INNOVA REPRESENTACAO',
+  GRAU: 'U',
+  LOJAS: 'N',
+  MODULO: 'N',
+  BANCOS: 'N',
+  LIMICP: 'N',
+  CCUSTO: 'N',
+  ARMAZEN: 'N',
+  COMISSAO: 0
+}
+Tentativa de login para usuário: a
+Resultado da busca: Usuário não encontrado
+Tentativa de login para usuário: 1
+Resultado da busca: Usuário não encontrado
+Tentativa de login para usuário: 1
+Resultado da busca: Usuário não encontrado
+Tentativa de login para usuário: 1
+Resultado da busca: Usuário não encontrado
+Tentativa de login para usuário: 1
+Resultado da busca: Usuário encontrado
+Senha válida: true
+Dados do usuário a serem enviados: {
+  USUARIO: '1',
+  NOME: 'admin',
+  USERNAME: 'admin',
+  UACESSO: null,
+  BLOQUEADO: null
+}
+Dados finais a serem enviados: {
+  USUARIO: '1',
+  NOME: 'admin',
+  GRAU: 'U',
+  LOJAS: 'N',
+  MODULO: 'N',
+  BANCOS: 'N',
+  LIMICP: 'N',
+  CCUSTO: 'N',
+  ARMAZEN: 'N',
+  COMISSAO: 0
+}

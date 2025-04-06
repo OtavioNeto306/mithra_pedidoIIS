@@ -1,0 +1,14 @@
+Servidor rodando na porta \\.\pipe\fa8a54d4-c02f-41ff-9c11-ce54ada78bfb
+Configurações do banco: { host: 'localhost', user: 'root', database: 'emporio' }
+Tentativa de login para usuário: admin
+Resultado da busca: Usuário não encontrado
+Tentativa de login para usuário: innova
+Resultado da busca: Usuário não encontrado
+Tentativa de login para usuário: 40000026
+Resultado da busca: Usuário encontrado
+Senha válida: false
+Tentativa de login para usuário: 40000026
+Resultado da busca: Usuário encontrado
+Senha válida: false
+Tentativa de login para usuário: innova
+Resultado da busca: Usuário não encontrado
