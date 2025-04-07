@@ -1,0 +1,24 @@
+Servidor rodando na porta \\.\pipe\10981928-81a9-44da-95af-f15a10585080
+Configurações do banco: { host: 'localhost', user: 'root', database: 'emporio' }
+Tentativa de login para usuário: 1
+Resultado da busca: Usuário encontrado
+Senha válida: true
+Dados do usuário a serem enviados: {
+  USUARIO: '1',
+  NOME: 'admin',
+  USERNAME: 'admin',
+  UACESSO: 'v',
+  BLOQUEADO: null
+}
+Dados finais a serem enviados: {
+  USUARIO: '1',
+  NOME: 'admin',
+  GRAU: 'v',
+  LOJAS: 'N',
+  MODULO: 'N',
+  BANCOS: 'N',
+  LIMICP: 'N',
+  CCUSTO: 'N',
+  ARMAZEN: 'N',
+  COMISSAO: 0
+}
