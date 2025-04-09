@@ -1,0 +1,2 @@
+Servidor rodando na porta \\.\pipe\14f789f2-4239-4255-b671-76216965d9f4
+Configurações do banco: { host: 'localhost', user: 'root', database: 'emporio' }
